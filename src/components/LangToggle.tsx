@@ -2,7 +2,7 @@
 // geometry, water-blue thumb, keeps the masked label swap and arrow-key support.
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
-import type { Lang } from "../content";
+import type { Lang } from "../lib";
 
 const OPTIONS: { value: Lang; label: string }[] = [
   { value: "en", label: "EN" },

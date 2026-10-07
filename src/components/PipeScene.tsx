@@ -184,7 +184,7 @@ function Clamp({ progress }: { progress: MotionValue<number> }) {
 
 type Drop = { p: THREE.Vector3; v: THREE.Vector3; alive: boolean; size: number };
 
-function Water({ progress, count }: { progress: MotionValue<number>; count: number }) {
+function Water({ progress, count, spark }: { progress: MotionValue<number>; count: number; spark: boolean }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const puddle = useRef<THREE.Mesh>(null);
   const puddleMat = useRef<THREE.MeshStandardMaterial>(null);
@@ -203,7 +203,14 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
     const d = drops.find((x) => !x.alive);
     if (!d) return;
     d.alive = true;
-    if (kind === "spray") {
+    if (kind === "spray" && spark) {
+      // sparks off the coupling: faster, finer, flung in every direction
+      const a = Math.random() * Math.PI * 2;
+      const sp = 2.5 + Math.random() * 3;
+      d.p.set((Math.random() - 0.5) * 0.1, PIPE_Y + 0.2, 0.3);
+      d.v.set(Math.cos(a) * sp, Math.abs(Math.sin(a)) * sp * 0.9 + 0.6, 0.6 + Math.random() * 0.8);
+      d.size = 0.008 + Math.random() * 0.01;
+    } else if (kind === "spray") {
       d.p.set((Math.random() - 0.5) * 0.12, PIPE_Y + 0.3, 0.12 + Math.random() * 0.05);
       d.v.set(0.7 + Math.random() * 1.1, 2.2 + Math.random() * 1.4, 0.35 + (Math.random() - 0.5) * 0.7);
       d.size = 0.014 + Math.random() * 0.018;
@@ -225,7 +232,7 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
       spawn("spray");
       s.emit -= 1;
     }
-    s.drip += (flow * 6 + (1 - flow) * 0) * dt;
+    s.drip += (spark ? 0 : flow * 6) * dt;
     while (s.drip > 1) {
       spawn("drip");
       s.drip -= 1;
@@ -235,11 +242,11 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
     if (!m) return;
     drops.forEach((d, i) => {
       if (d.alive) {
-        d.v.y -= 7.5 * dt;
+        d.v.y -= (spark ? 9.5 : 7.5) * dt;
         d.p.addScaledVector(d.v, dt);
         if (d.p.y < FLOOR_Y) {
           d.alive = false;
-          if (Math.random() < 0.35) {
+          if (!spark && Math.random() < 0.35) {
             const r = ringState[s.ring++ % ringState.length];
             r.t = 0;
             r.x = d.p.x;
@@ -252,7 +259,7 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
         dir.copy(d.v).normalize();
         dummy.position.copy(d.p);
         dummy.quaternion.setFromUnitVectors(up, dir);
-        dummy.scale.set(d.size, d.size * (1 + speed * 0.5), d.size);
+        dummy.scale.set(d.size, d.size * (1 + speed * (spark ? 2.2 : 0.5)), d.size);
       } else {
         dummy.scale.setScalar(0);
       }
@@ -261,7 +268,7 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
     });
     m.instanceMatrix.needsUpdate = true;
 
-    s.wet = THREE.MathUtils.clamp(s.wet + (flow > 0.05 ? 0.06 : -0.22) * dt, 0, 1);
+    s.wet = spark ? 0 : THREE.MathUtils.clamp(s.wet + (flow > 0.05 ? 0.06 : -0.22) * dt, 0, 1);
     if (puddle.current) puddle.current.scale.setScalar(0.4 + s.wet * 2.2);
     if (puddleMat.current) puddleMat.current.opacity = s.wet * 0.7;
 
@@ -280,7 +287,11 @@ function Water({ progress, count }: { progress: MotionValue<number>; count: numb
     <group>
       <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false}>
         <sphereGeometry args={[1, 10, 8]} />
-        <meshStandardMaterial color="#9fe2ff" emissive={WATER} emissiveIntensity={0.55} metalness={0.2} roughness={0.05} transparent opacity={0.92} />
+        {spark ? (
+          <meshBasicMaterial color="#e6f8ff" toneMapped={false} />
+        ) : (
+          <meshStandardMaterial color="#9fe2ff" emissive={WATER} emissiveIntensity={0.55} metalness={0.2} roughness={0.05} transparent opacity={0.92} />
+        )}
       </instancedMesh>
       <mesh ref={puddle} position={[0.5, FLOOR_Y, 0.4]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[1, 64]} />
@@ -318,11 +329,13 @@ export default function PipeScene({
   lite,
   interactive,
   still,
+  mode = "leak",
 }: {
   progress: MotionValue<number>;
   lite: boolean;
   interactive: boolean;
   still: boolean;
+  mode?: "leak" | "spark";
 }) {
   return (
     <Canvas
@@ -352,7 +365,7 @@ export default function PipeScene({
           <Pipework />
           <Valve progress={progress} />
           <Clamp progress={progress} />
-          <Water progress={progress} count={lite ? 110 : 240} />
+          <Water progress={progress} count={lite ? 110 : 240} spark={mode === "spark"} />
         </Rig>
       </PresentationControls>
     </Canvas>

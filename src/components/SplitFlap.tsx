@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 
-const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.";
+const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.-/'";
 
 function Cell({ target, delay, speed }: { target: string; delay: number; speed: number }) {
   const reduced = useReducedMotion();
