@@ -1,4 +1,14 @@
-export type Lang = "en" | "hi";
+import { pickAreas, type Feature, type Hours, type Scene, type SectionKey } from "./lib";
+
+export const BRAND = "Ganesh";
+export const HOURS: Hours = null;
+export const FLAP_IDLE = "";
+export const SCENE: Scene = "leak";
+export const VISIT_IMG = "/img/p1.jpg";
+export const VISIT_ALT = "Ganesh Plumber Service Gurgaon shop sign";
+export const FALLBACK_IMG = "/img/p5.jpg";
+export const ORDER: SectionKey[] = ["map", "work", "reviews", "visit"];
+export const FEATURE: Feature | null = null;
 
 export const PHONE = "+919717167154";
 export const PHONE_DISPLAY = "97171 67154";
@@ -8,28 +18,8 @@ export const MAPS_URL = `https://www.google.com/maps/dir/?api=1&destination=${SH
 
 export const waLink = (text: string) => `https://wa.me/${WA}?text=${encodeURIComponent(text)}`;
 
-/** Approximate area centres, used only for straight-line distance from the shop. */
-export const AREAS: { id: string; en: string; hi: string; lat: number; lon: number }[] = [
-  { id: "s52", en: "Sector 52", hi: "सेक्टर 52", lat: 28.4352, lon: 77.0805 },
-  { id: "s54", en: "Golf Course Rd", hi: "गोल्फ़ कोर्स रोड", lat: 28.4405, lon: 77.1012 },
-  { id: "s43", en: "Sector 43", hi: "सेक्टर 43", lat: 28.4562, lon: 77.0893 },
-  { id: "dlf5", en: "DLF Phase 5", hi: "DLF फ़ेज़ 5", lat: 28.4497, lon: 77.0995 },
-  { id: "sl1", en: "Sushant Lok 1", hi: "सुशांत लोक 1", lat: 28.4636, lon: 77.0771 },
-  { id: "s57", en: "Sector 57", hi: "सेक्टर 57", lat: 28.4218, lon: 77.0762 },
-  { id: "s56", en: "Sector 56", hi: "सेक्टर 56", lat: 28.4212, lon: 77.1004 },
-  { id: "dlf1", en: "DLF Phase 1", hi: "DLF फ़ेज़ 1", lat: 28.4716, lon: 77.0962 },
-  { id: "s65", en: "Golf Course Ext.", hi: "गोल्फ़ कोर्स एक्सटेंशन", lat: 28.4025, lon: 77.0745 },
-  { id: "dlf3", en: "DLF Phase 3", hi: "DLF फ़ेज़ 3", lat: 28.4928, lon: 77.0957 },
-];
-
-export function km(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
-  const R = 6371;
-  const r = (d: number) => (d * Math.PI) / 180;
-  const dLat = r(b.lat - a.lat);
-  const dLon = r(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
+export const AREAS = pickAreas(["s54", "s43", "dlf5", "sl1", "s57", "s56", "dlf1", "s65", "dlf3"]);
+export const DEFAULT_AREA = "dlf5";
 
 /** Verbatim from Google reviews of the listing. */
 export const REVIEWS = [
@@ -55,8 +45,10 @@ export const STATUSES = ["LEAK REPORTED", "CALL ANSWERED", "ON THE WAY", "LEAK S
 const en = {
   banner: "Concept preview made for Ganesh ji by LocalLift. Not live yet.",
   brandSub: "Plumber, Gurugram",
+  live: "Ganesh Prasad, on call now",
+  shopLabel: "Ganesh's shop",
   call: "Call Ganesh",
-  callShort: "Call",
+  callShort: "Call Ganesh",
   whatsapp: "WhatsApp",
   waHello: "Hi Ganesh ji, I need a plumber.",
   heroTitle: ["Leak at 2am?", "Ganesh picks up."],
@@ -117,6 +109,8 @@ const en = {
 const hi: typeof en = {
   banner: "यह LocalLift द्वारा गणेश जी के लिए बनाया गया डेमो है। अभी लाइव नहीं है।",
   brandSub: "प्लंबर, गुरुग्राम",
+  live: "गणेश प्रसाद, अभी कॉल पर उपलब्ध",
+  shopLabel: "गणेश जी की दुकान",
   call: "गणेश जी को कॉल करें",
   callShort: "कॉल",
   whatsapp: "व्हाट्सऐप",
